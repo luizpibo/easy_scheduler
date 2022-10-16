@@ -1,5 +1,5 @@
 {
-  "name": "tasks_to_do_calendar",
+  "name": "to-do_schedule",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -14,17 +14,16 @@
     "@fullcalendar/common": "^5.11.3",
     "@fullcalendar/daygrid": "^5.11.3",
     "@fullcalendar/interaction": "^5.11.3",
+    "@fullcalendar/list": "^5.11.3",
     "@fullcalendar/react": "^5.11.2",
     "@fullcalendar/resource-timeline": "^5.11.3",
     "@fullcalendar/timegrid": "^5.11.3",
-    "@fullcalendar/timeline": "^5.11.3",
-    "@types/react-calendar": "^3.5.3",
+    "date-fns": "^2.29.3",
     "firebase": "^9.12.1",
-    "js-cookie": "^3.0.1",
+    "fullcalendar": "^5.11.3",
     "next": "12.3.1",
     "next-transpile-modules": "^9.1.0",
     "react": "18.2.0",
-    "react-calendar": "^3.9.0",
     "react-dom": "18.2.0",
     "react-firebaseui": "^6.0.0"
   },

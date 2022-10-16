@@ -7,6 +7,9 @@ const withTM = require("next-transpile-modules")([
   "@fullcalendar/interaction",
   "@fullcalendar/react",
   "@fullcalendar/timegrid",
+  "@fullcalendar/list",
+  '@fullcalendar/resource-timeline',
+  '@fullcalendar/timeline'
 ]);
 
 
