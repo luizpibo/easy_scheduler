@@ -6,7 +6,7 @@ import { useContext, useRef, useState } from "react";
 import { SchedulerContext } from "../Dashboard/context/SchedulerProvider";
 
 const Scheduler: React.FC = () => {
-  const {calendarRef, events} = useContext(SchedulerContext);
+  const {calendarRef, events, handleShowEventDetails} = useContext(SchedulerContext);
 
   return (
     <div className="rounded bg-gray-800 p-4 shadow-lg text-gray-200">
@@ -28,6 +28,9 @@ const Scheduler: React.FC = () => {
           week: "Semana",
           day: "Dia",
           list: "Lista",
+        }}
+        eventClick={(e) => {
+          handleShowEventDetails(e.event.id)
         }}
         height={480}
         initialDate={Date.now()}

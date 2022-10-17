@@ -1,8 +1,8 @@
-import { EventDef } from "@fullcalendar/common";
-import { Popover, Transition } from "@headlessui/react";
+import { Popover, Transition, Dialog, Combobox } from "@headlessui/react";
 import { Button } from "flowbite-react";
-import { useState } from "react";
-
+import moment from "moment";
+import { useContext, useState } from "react";
+import { SchedulerContext } from "../context/SchedulerProvider";
 const newTaskForm = [
   {
     label: "Buscar pelo título",
@@ -11,8 +11,9 @@ const newTaskForm = [
   },
 ];
 const FindTask = () => {
-  const [task, setTask] = useState<EventDef>();
-
+  const {events, handleShowEventDetails} = useContext(SchedulerContext);
+  const [selectedEvent, setSelectedEvent] = useState('');
+  const [query, setQuery] = useState('')
   return (
     <Popover className="z-20">
       <Popover.Button className="bg-slate-500 px-8 py-4 rounded-md shadow-lg transition hover:bg-slate-400 hover:shadow-xl text-gray-300 w-full">
@@ -28,25 +29,28 @@ const FindTask = () => {
         className="z-10"
       >
         <Popover.Panel className="transition m-auto absolute mt-4 px-4 py-3 bg-slate-500 rounded-lg shadow text-gray-300 w-screen max-w-sm transform -translate-x-32 lg:-translate-x-1/4">
-          <form className="grid gap-2">
-            {newTaskForm.map((field) => {
-              return (
-                <div className="relative" key={field.label}>
-                  <label htmlFor={field.id} className="absolute hidden">
-                    {field.label}
-                  </label>
-                  <input
-                    className="bg-slate-600 border border-slate-700 text-gray-200 sm:text-sm rounded-lg block w-full p-2"
-                    id={field.id}
-                    placeholder={field.label}
-                    required
-                    type={field.type}
-                  />
+            <Combobox value={selectedEvent} onChange={(e)=>{
+              console.log("setSelectedEvent",e)
+              handleShowEventDetails(e);
+              setSelectedEvent(e);
+            }}>
+            <div className="flex items-center px-4">
+              <Combobox.Input className="h-12 w-full border-0 text-sm text-gray-800 placeholder-gray-400 focus:ring-0" 
+                placeholder="Digite o nome do evento..."
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </div>  
+            <Combobox.Options>
+              {events?.map((event)=>{
+              return <Combobox.Option value={event.id} key={event.id}>
+                <div className="flex justify-between px-4 py-3">
+                  <h3>{event.title}</h3>
+                  <p>{moment(event.start).format("D/M/YYYY - hh:mm")}</p>
                 </div>
-              );
-            })}
-            <Button type="submit">Procurar tarefa</Button>
-          </form>
+              </Combobox.Option>
+              })}
+            </Combobox.Options>
+            </Combobox>
         </Popover.Panel>
       </Transition>
     </Popover>
