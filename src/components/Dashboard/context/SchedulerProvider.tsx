@@ -11,6 +11,8 @@ import {
 import { fireStoreApp } from "../../../API/firebaseApp";
 import { collection, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
 import { Dialog, Transition } from "@headlessui/react";
+import { useForm } from "react-hook-form";
+import { Button } from "flowbite-react";
 
 interface Inputs {
   title: string;
@@ -51,9 +53,44 @@ export const SchedulerContext = createContext<ISchedulerContext>(
   {} as ISchedulerContext
 );
 
+interface Task {
+  label: string;
+  id: string;
+  type: string;
+  inputName: "title" | "description" | "startDateTime" | "duration";
+}
+
+const newTaskForm: Task[] = [
+  {
+    label: "Título da tarefa",
+    id: "taskTitle",
+    type: "text",
+    inputName: "title",
+  },
+  {
+    label: "Descrição",
+    id: "taskDescription",
+    type: "text",
+    inputName: "description",
+  },
+  {
+    label: "Dia da tarefa",
+    id: "taskDay",
+    type: "datetime-local",
+    inputName: "startDateTime",
+  },
+  {
+    label: "Tempo de duração da tarefa em minutos",
+    id: "taskDuration",
+    type: "number",
+    inputName: "duration",
+  },
+];
+
 const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   const calendarRef = useRef<FullCalendar>(null!);
   const [selectedEvent, setSelectedEvent] = useState<Events>();
+  const { register, handleSubmit } = useForm<Inputs>();
   const [events, setEvents] = useState<Events[]>([]);
   const [isOpen, setIsOpen] = useState(true);
   const dbInstance = collection(fireStoreApp, "task");
@@ -77,21 +114,17 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     setIsOpen(false);
   }
 
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  const getEventById = async(id: string): Promise<any> => {
+  const getEventById = async (id: string): Promise<any> => {
     // Buscando pelo banco de dados
     // const docRef = doc(fireStoreApp, "task", id);
     // const docData = await getDoc(docRef);
 
-    const selectEventFilter = events.filter((event)=>event.id===id);
-    if(selectEventFilter){
-        console.log(selectEventFilter[0])
-        setSelectedEvent(selectEventFilter[0])
+    const selectEventFilter = events.filter((event) => event.id === id);
+    if (selectEventFilter) {
+      console.log(selectEventFilter[0]);
+      setSelectedEvent(selectEventFilter[0]);
     }
-  }
+  };
 
   const getEventsFromDb = async (): Promise<any> => {
     return await getDocs(dbInstance).then((data) => {
@@ -144,8 +177,11 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     setIsOpen(true);
     getEventById(eventClick);
   };
-  const handleUpdateEvent = (originalEvent: Inputs, newEvent: Inputs) => {};
+
+  const handleUpdateEvent = (newEvent: Inputs) => {};
+
   const handleDeleteEvent = (event: Inputs) => {};
+
   return (
     <div className="relative">
       <SchedulerContext.Provider
@@ -193,20 +229,37 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
                     {selectedEvent?.title}
                   </Dialog.Title>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      Your payment has been successfully submitted. We’ve sent
-                      you an email with all of the details of your order.
-                    </p>
-                  </div>
-
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={closeModal}
+                    <form
+                      className="grid gap-2"
+                      onSubmit={handleSubmit(handleUpdateEvent)}
                     >
-                      Got it, thanks!
-                    </button>
+                      {newTaskForm.map((field) => {
+                        return (
+                          <div className="relative" key={field.inputName}>
+                            <label
+                              htmlFor={field.id}
+                              className="absolute hidden"
+                            >
+                              {field.label}
+                            </label>
+                            <input
+                              className="bg-slate-600 border border-slate-700 text-gray-200 sm:text-sm rounded-lg block w-full p-2"
+                              id={field.id}
+                              placeholder={field.label}
+                              required
+                              type={field.type}
+                              defaultValue={
+                                field.type == "datetime-local"
+                                  ? moment().toNow()
+                                  : ""
+                              }
+                              {...register(field.inputName)}
+                            />
+                          </div>
+                        );
+                      })}
+                      <Button type="submit">Adicionar tarefa</Button>
+                    </form>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

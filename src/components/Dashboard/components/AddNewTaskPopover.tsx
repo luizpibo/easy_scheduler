@@ -12,13 +12,6 @@ interface Task {
   inputName: "title" | "description" | "startDateTime" | "duration";
 }
 
-interface Inputs {
-  title: string;
-  description: string;
-  startDateTime: Date;
-  duration: number;
-}
-
 const newTaskForm: Task[] = [
   {
     label: "Título da tarefa",
@@ -46,9 +39,17 @@ const newTaskForm: Task[] = [
   },
 ];
 
+interface Inputs {
+  title: string;
+  description: string;
+  startDateTime: Date;
+  duration: number;
+}
+
+
 const PopoverButton = () => {
   const {handleAddEvent} = useContext(SchedulerContext);
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<Inputs>();
+  const { register, handleSubmit } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = data => {handleAddEvent(data)};
   return (
     <Popover className="z-20">
