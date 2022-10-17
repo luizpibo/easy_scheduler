@@ -3,19 +3,13 @@ import { Button } from "flowbite-react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useContext } from "react";
 import { SchedulerContext } from "../context/SchedulerProvider";
+import moment from "moment";
 
 interface Task {
   label: string;
   id: string;
   type: string;
   inputName: "title" | "description" | "startDateTime" | "duration";
-}
-
-interface Inputs {
-  title: string;
-  description: string;
-  startDateTime: Date;
-  duration: number;
 }
 
 const newTaskForm: Task[] = [
@@ -45,9 +39,17 @@ const newTaskForm: Task[] = [
   },
 ];
 
+interface Inputs {
+  title: string;
+  description: string;
+  startDateTime: Date;
+  duration: number;
+}
+
+
 const PopoverButton = () => {
   const {handleAddEvent} = useContext(SchedulerContext);
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<Inputs>();
+  const { register, handleSubmit } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = data => {handleAddEvent(data)};
   return (
     <Popover className="z-20">
@@ -77,6 +79,7 @@ const PopoverButton = () => {
                     placeholder={field.label}
                     required
                     type={field.type}
+                    defaultValue={field.type=="datetime-local"? moment().toNow(): ""}
                     {...register(field.inputName)}
                   />
                 </div>
