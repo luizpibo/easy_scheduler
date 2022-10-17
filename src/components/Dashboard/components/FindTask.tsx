@@ -1,3 +1,4 @@
+import { EventDef } from "@fullcalendar/common";
 import { Popover, Transition } from "@headlessui/react";
 import { Button } from "flowbite-react";
 import { useState } from "react";
@@ -10,7 +11,7 @@ const newTaskForm = [
   },
 ];
 const FindTask = () => {
-  const [task, setTask] = useState();
+  const [task, setTask] = useState<EventDef>();
 
   return (
     <Popover className="z-20">
@@ -30,7 +31,7 @@ const FindTask = () => {
           <form className="grid gap-2">
             {newTaskForm.map((field) => {
               return (
-                <div className="relative">
+                <div className="relative" key={field.label}>
                   <label htmlFor={field.id} className="absolute hidden">
                     {field.label}
                   </label>
@@ -44,7 +45,6 @@ const FindTask = () => {
                 </div>
               );
             })}
-            <div>{task}</div>
             <Button type="submit">Procurar tarefa</Button>
           </form>
         </Popover.Panel>

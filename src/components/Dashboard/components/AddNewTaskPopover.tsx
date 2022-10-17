@@ -1,35 +1,61 @@
 import { Popover, Transition } from "@headlessui/react";
 import { Button } from "flowbite-react";
-import { CalendarApi, EventApi } from "@fullcalendar/common";
-const newTaskForm = [
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useContext } from "react";
+import { SchedulerContext } from "../context/SchedulerProvider";
+
+interface Task {
+  label: string;
+  id: string;
+  type: string;
+  inputName: "title" | "description" | "startDay" | "startTime" | "duration";
+}
+
+interface Inputs {
+  title: string;
+  description: string;
+  startDay: Date;
+  startTime: string;
+  duration: number;
+}
+
+const newTaskForm: Task[] = [
   {
     label: "Título da tarefa",
     id: "taskTitle",
     type: "text",
+    inputName: "title"
   },
   {
     label: "Descrição",
     id: "taskDescription",
     type: "text",
+    inputName: "description"
   },
   {
     label: "Dia da tarefa",
     id: "taskDay",
     type: "date",
+    inputName: "startDay"
   },
   {
     label: "Horário de início",
     id: "taskStartTime",
     type: "time",
+    inputName: "startTime"
   },
   {
     label: "Tempo de duração da tarefa em minutos",
     id: "taskDuration",
     type: "number",
+    inputName: "duration"
   },
 ];
 
 const PopoverButton = () => {
+  const {handleAddEvent} = useContext(SchedulerContext);
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<Inputs>();
+  const onSubmit: SubmitHandler<Inputs> = data => {handleAddEvent(data)};
   return (
     <Popover className="z-20">
       <Popover.Button className="bg-slate-500 px-8 py-4 rounded-md shadow-lg hover:bg-slate-400 hover:shadow-xl text-gray-300 w-full">
@@ -45,10 +71,10 @@ const PopoverButton = () => {
         className="w-full flex-1"
       >
         <Popover.Panel className="absolute mt-4 px-4 py-3 bg-slate-500 rounded-lg shadow text-gray-300 w-screen max-w-sm transform lg:translate-x-1/4">
-          <form className="grid gap-2">
+          <form className="grid gap-2" onSubmit={handleSubmit(onSubmit)}>
             {newTaskForm.map((field) => {
               return (
-                <div className="relative">
+                <div className="relative" key={field.inputName}>
                   <label htmlFor={field.id} className="absolute hidden">
                     {field.label}
                   </label>
@@ -58,6 +84,7 @@ const PopoverButton = () => {
                     placeholder={field.label}
                     required
                     type={field.type}
+                    {...register(field.inputName)}
                   />
                 </div>
               );

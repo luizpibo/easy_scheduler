@@ -1,12 +1,13 @@
-import FullCalendar, { DatesSetArg, EventInput } from "@fullcalendar/react";
+import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
+import { SchedulerContext } from "../Dashboard/context/SchedulerProvider";
 
 const Scheduler: React.FC = () => {
-  const calendarRef = useRef<FullCalendar>(null!);
-  const [events, setEvents] = useState<EventInput[]>([]);
+  const {calendarRef, events} = useContext(SchedulerContext);
+
   return (
     <div className="rounded bg-gray-800 p-4 shadow-lg text-gray-200">
       <FullCalendar
