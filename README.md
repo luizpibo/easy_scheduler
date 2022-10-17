@@ -32,7 +32,6 @@ Firebase
 - Deletar tarefa;
 - Vizualizar tarefas por dia, semana e mes;
 
-
 # Modelos do banco de dados
 
 
