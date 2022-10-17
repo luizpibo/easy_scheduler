@@ -8,14 +8,13 @@ interface Task {
   label: string;
   id: string;
   type: string;
-  inputName: "title" | "description" | "startDay" | "startTime" | "duration";
+  inputName: "title" | "description" | "startDateTime" | "duration";
 }
 
 interface Inputs {
   title: string;
   description: string;
-  startDay: Date;
-  startTime: string;
+  startDateTime: Date;
   duration: number;
 }
 
@@ -35,14 +34,8 @@ const newTaskForm: Task[] = [
   {
     label: "Dia da tarefa",
     id: "taskDay",
-    type: "date",
-    inputName: "startDay"
-  },
-  {
-    label: "Horário de início",
-    id: "taskStartTime",
-    type: "time",
-    inputName: "startTime"
+    type: "datetime-local",
+    inputName: "startDateTime"
   },
   {
     label: "Tempo de duração da tarefa em minutos",

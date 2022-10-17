@@ -1,11 +1,9 @@
 import type { NextPage } from "next";
-import { login, logout } from "../contexts/AuthContexts";
+import { login } from "../contexts/AuthContexts";
 import { useEffect, useRef, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { getAuth } from "firebase/auth";
-import Scheduler from "../components/Scheduler";
 import Dashboard from "../components/Dashboard";
-import { Navbar } from "flowbite-react";
 
 const Home: NextPage = () => {
   const [logged, setLogged] = useState(false);

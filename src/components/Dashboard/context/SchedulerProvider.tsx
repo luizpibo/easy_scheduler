@@ -5,8 +5,7 @@ import { createContext, MutableRefObject, useRef, useState } from "react"
 interface Inputs {
     title: string;
     description: string;
-    startDay: Date;
-    startTime: string;
+    startDateTime: Date;
     duration: number;
   }
 
@@ -31,12 +30,12 @@ const SchedulerProvider:React.FC<IProvider> = ({children}) => {
 
     const handleAddEvent = (event: Inputs) => {
         console.log("Evento...", event)
-        console.log(moment(event.startDay).format('LT'))
         const calendarApi = calendarRef.current.getApi();
+        console.log();
         calendarApi.addEvent({
             title: event.title,
-            start: event.startDay,
-            end: event.startDay,
+            start: moment(event.startDateTime).toDate(),
+            end: moment(event.startDateTime).add(event.duration, "minutes").toDate(),
         })
 
     }
