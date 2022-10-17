@@ -5,6 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { getAuth } from "firebase/auth";
 import Scheduler from "../components/Scheduler";
 import Dashboard from "../components/Dashboard";
+import { Navbar } from "flowbite-react";
 
 const Home: NextPage = () => {
   const [logged, setLogged] = useState(false);
