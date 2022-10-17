@@ -3,6 +3,7 @@ import { Button } from "flowbite-react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useContext } from "react";
 import { SchedulerContext } from "../context/SchedulerProvider";
+import moment from "moment";
 
 interface Task {
   label: string;
@@ -77,6 +78,7 @@ const PopoverButton = () => {
                     placeholder={field.label}
                     required
                     type={field.type}
+                    defaultValue={field.type=="datetime-local"? moment().toNow(): ""}
                     {...register(field.inputName)}
                   />
                 </div>
