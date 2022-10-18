@@ -5,28 +5,27 @@
 
 # Como iniciar o projeto
 
- baixe o projeto
-
- baixe as dependencias
+ baixe o projeto,
+ baixe as dependencias,
+ Crie uma conta na firebase e inicie um novo projeto,
+ crie um novo banco fireStore com uma coleção com nome task,
+ crie o arquivo .env com os dados de configuração da firebase. 
 
 # Tecnologias
 
+React
 Next.js
-
-Typescript 
-
-NextAuth
-
 tailwind
-
-React calendar 
-
+Typescript 
+FlowBite
+HeadlessUI
+FullCalendar
+Moment
 Firebase
 
 # Casos de uso
 
 - Login com o email do google;
-- Selecionar dia/semana/mes no calendário;
 - Adicionar tarefa;
 - Editar tarefa;
 - Deletar tarefa;
@@ -36,43 +35,15 @@ Firebase
 
 
 ```js
-User: {
-    userId: string;
-    username: string;
-    email: string;
-    createDate: dateTime;
-    authToken: string;
-}
 
-Calendar: {
-    calendarId: string;
-    userId: string;
-    dailyTasks: [
-        Task:{}
-    ];
-    businessDayTasks: [
-        Task:{}
-    ];
-    finishedTasks: [
-        Task:{}
-    ];
-    tasksOfTheDay: [
-        Task:{}
-    ]
-    futureTasks: [
-        Task:{}
-    ]
-}
-
-Task:{
-    taskId: string;
-    title: string;
-    description: string;
-    startDate: date;
-    endDate: date;
-    startTime: time;
-    durationTimeInMinutes: int;
-    finished: boolean;
+task:{
+	description "teste"
+	duration "50"
+	end "2022-10-19T00:10:00.000Z"
+	id "dgVHDyK3wdAJpVerStS9"
+	(string)
+	start "2022-10-18T23:20:00.000Z"
+	title "teste" 
 }
 
 ```
