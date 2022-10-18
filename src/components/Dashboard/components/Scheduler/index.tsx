@@ -2,21 +2,18 @@ import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { useContext, useRef, useState } from "react";
-import { SchedulerContext } from "../Dashboard/context/SchedulerProvider";
+import { useContext } from "react";
+import { SchedulerContext } from "../../context/SchedulerProvider";
 
 const Scheduler: React.FC = () => {
-  const {calendarRef, events, handleShowEventDetails} = useContext(SchedulerContext);
-
+  const { calendarRef, events, handleShowEventDetails } =
+    useContext(SchedulerContext);
   return (
-    <div className="rounded bg-gray-800 p-4 shadow-lg text-gray-200">
+    <div className="flex-col flex-1 rounded bg-gray-800 p-4 shadow-lg text-gray-200">
       <FullCalendar
         ref={calendarRef}
         events={events}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        dateClick={(e)=>{
-          e.view.calendar.addEvent({title: "teste da madruga", start: Date().toString()})
-        }}
         headerToolbar={{
           left: "prev,next today",
           center: "title",
@@ -30,7 +27,7 @@ const Scheduler: React.FC = () => {
           list: "Lista",
         }}
         eventClick={(e) => {
-          handleShowEventDetails(e.event.id)
+          handleShowEventDetails(e.event.id);
         }}
         height={480}
         initialDate={Date.now()}

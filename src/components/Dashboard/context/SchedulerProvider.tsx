@@ -1,42 +1,56 @@
-import FullCalendar, { EventClickArg } from "@fullcalendar/react";
-import moment from "moment";
 import {
   createContext,
   MutableRefObject,
   useEffect,
   useRef,
   useState,
-  Fragment,
 } from "react";
-import { fireStoreApp } from "../../../API/firebaseApp";
-import { collection, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
-import { Dialog, Transition } from "@headlessui/react";
-import { useForm } from "react-hook-form";
-import { Button } from "flowbite-react";
-
-interface Inputs {
-  title: string;
-  description: string;
-  startDateTime: Date;
-  duration: number;
-}
-
-interface Events {
-  start: string;
-  end: string;
-  id: string;
-  title: string;
-  description: string;
-  duration: number;
-}
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+  doc,
+} from "firebase/firestore";
+import { fireStoreApp, auth } from "../../../API/firebaseApp";
+import FullCalendar from "@fullcalendar/react";
+import moment from "moment";
+import Modals from "../components/Modals";
 
 interface ISchedulerContext {
   calendarRef: MutableRefObject<FullCalendar>;
   events?: Events[];
+  isOpen: boolean;
+  openModal: () => void;
+  closeModal: () => void;
+  selectedEvent?: Events;
   handleAddEvent: (event: Inputs) => void;
-  handleUpdateEvent: (originalEvent: Inputs, newEvent: Inputs) => void;
+  // handleUpdateEvent: (originalEvent: Inputs, newEvent: Inputs) => void;
+  handleUpdateEvent: any;
   handleDeleteEvent: (event: Inputs) => void;
   handleShowEventDetails: (event: string) => void;
+  currentModal: string;
+  setCurrentModal: (modalName: string) => void;
+  setSelectedEvent: any;
+}
+
+export interface Events {
+  start: string;
+  end: string;
+  id?: string;
+  title: string;
+  description: string;
+  duration: number;
+  userUid?: string;
+}
+
+export interface Inputs {
+  title: string;
+  description: string;
+  start: Date;
+  duration: number;
 }
 
 interface IProvider {
@@ -53,91 +67,59 @@ export const SchedulerContext = createContext<ISchedulerContext>(
   {} as ISchedulerContext
 );
 
-interface Task {
-  label: string;
-  id: string;
-  type: string;
-  inputName: "title" | "description" | "startDateTime" | "duration";
-}
-
-const newTaskForm: Task[] = [
-  {
-    label: "Título da tarefa",
-    id: "taskTitle",
-    type: "text",
-    inputName: "title",
-  },
-  {
-    label: "Descrição",
-    id: "taskDescription",
-    type: "text",
-    inputName: "description",
-  },
-  {
-    label: "Dia da tarefa",
-    id: "taskDay",
-    type: "datetime-local",
-    inputName: "startDateTime",
-  },
-  {
-    label: "Tempo de duração da tarefa em minutos",
-    id: "taskDuration",
-    type: "number",
-    inputName: "duration",
-  },
-];
-
 const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   const calendarRef = useRef<FullCalendar>(null!);
   const [selectedEvent, setSelectedEvent] = useState<Events>();
-  const { register, handleSubmit } = useForm<Inputs>();
   const [events, setEvents] = useState<Events[]>([]);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentModal, setModal] = useState("buscar_tarefa");
   const dbInstance = collection(fireStoreApp, "task");
 
   useEffect(() => {
-    const fetchData = async () => {
-      const dbEvents = await getEventsFromDb();
-      saveTasksInLocal(dbEvents);
-      return dbEvents;
-    };
+    const fetchData = async () => await getEventsFromDb();
     const localStoreEvents = getEventsOnLocal();
-
     if (localStoreEvents) {
       setEvents(localStoreEvents);
     } else {
-      fetchData().then((data) => setEvents(data));
+      fetchData().then((data) => {
+        saveTasksInLocal(data);
+        setEvents(data);
+      });
     }
   }, []);
 
-  function closeModal() {
-    setIsOpen(false);
-  }
+  const setCurrentModal = (modalName: string) => {
+    openModal();
+    setModal(modalName);
+  };
 
-  const getEventById = async (id: string): Promise<any> => {
+  const closeModal = () => {
+    setIsOpen(false);
+  };
+  const openModal = () => {
+    setIsOpen(true);
+  };
+  const getEventById = (id: string) => {
     // Buscando pelo banco de dados
     // const docRef = doc(fireStoreApp, "task", id);
     // const docData = await getDoc(docRef);
-
     const selectEventFilter = events.filter((event) => event.id === id);
     if (selectEventFilter) {
-      console.log(selectEventFilter[0]);
       setSelectedEvent(selectEventFilter[0]);
     }
   };
-
   const getEventsFromDb = async (): Promise<any> => {
-    return await getDocs(dbInstance).then((data) => {
+    const userUid = auth.currentUser?.uid as String;
+    const q = query(dbInstance, where("userUid", "==", userUid));
+    return await getDocs(q).then((data) => {
       return data.docs.map((task) => {
         return { ...task.data(), id: task.id };
       });
     });
   };
-
   const saveTasksInLocal = (events: Events[]) => {
     localStorage.setItem("events", JSON.stringify(events));
   };
-
   const getEventsOnLocal = () => {
     const stringEvents = localStorage.getItem("events");
     if (stringEvents) {
@@ -145,21 +127,23 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     }
     return null;
   };
-
   const handleAddEvent = async (event: Inputs) => {
     const calendarApi = calendarRef.current.getApi();
     const createdEvent = calendarApi.addEvent({
       title: event.title,
-      start: moment(event.startDateTime).toDate(),
-      end: moment(event.startDateTime).add(event.duration, "minutes").toDate(),
+      start: moment(event.start).toDate(),
+      end: moment(event.start).add(event.duration, "minutes").toDate(),
     });
 
     if (createdEvent) {
-      await addDoc(dbInstance, {
+      const userUid = auth.currentUser?.uid;
+      const newEvent = {
         ...createdEvent.toJSON(),
-        desciption: event.description,
+        description: event.description,
         duration: event.duration,
-      }).then((data) => {
+        userUid: userUid,
+      }
+      await addDoc(dbInstance, newEvent).then((data) => {
         const newEvent = {
           ...(createdEvent.toJSON() as IpureEvent),
           description: event.description,
@@ -169,104 +153,69 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
         const newEvents = [...events, newEvent];
         setEvents(newEvents);
         saveTasksInLocal(newEvents);
+        closeModal();
       });
     }
   };
 
-  const handleShowEventDetails = (eventClick: string) => {
-    setIsOpen(true);
-    getEventById(eventClick);
+  const UpdateEventState = () => {
+    if (events.length > 0) {
+      const newEventsState = events.map((event) => {
+        if (event.id == selectedEvent?.id) {
+          return selectedEvent;
+        }
+        return event;
+      });
+      setEvents(newEventsState as Events[]);
+      saveTasksInLocal(newEventsState as Events[]);
+    }
   };
+  const handleShowEventDetails = (eventId: string) => {
+    getEventById(eventId);
+    setCurrentModal("alterar_tarefa");
+  };
+  const handleUpdateEvent = async (newEvent: Inputs) => {
+    const refDoc = doc(dbInstance, selectedEvent?.id);
 
-  const handleUpdateEvent = (newEvent: Inputs) => {};
+    const newEventFormated = {
+      ...selectedEvent,
+      description: newEvent.description,
+      duration: newEvent.duration,
+      end: moment(newEvent.start).add(newEvent.duration, "minutes").toDate().toISOString(),
+      start: moment(newEvent.start).toDate().toISOString(),
+      title: newEvent.title,
+    }
+    setSelectedEvent(newEventFormated);
 
+    await setDoc(refDoc, newEventFormated);
+    UpdateEventState();
+    closeModal();
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.refetchEvents();
+  };
   const handleDeleteEvent = (event: Inputs) => {};
-
   return (
     <div className="relative">
       <SchedulerContext.Provider
         value={{
           calendarRef,
           events,
+          isOpen,
+          closeModal,
+          openModal,
+          selectedEvent,
           handleAddEvent,
           handleUpdateEvent,
           handleDeleteEvent,
           handleShowEventDetails,
+          setCurrentModal,
+          setSelectedEvent,
+          currentModal,
         }}
       >
         {children}
+        <Modals />
       </SchedulerContext.Provider>
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-500 p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
-                    {selectedEvent?.title}
-                  </Dialog.Title>
-                  <div className="mt-2">
-                    <form
-                      className="grid gap-2"
-                      onSubmit={handleSubmit(handleUpdateEvent)}
-                    >
-                      {newTaskForm.map((field) => {
-                        return (
-                          <div className="relative" key={field.inputName}>
-                            <label
-                              htmlFor={field.id}
-                              className="absolute hidden"
-                            >
-                              {field.label}
-                            </label>
-                            <input
-                              className="bg-slate-600 border border-slate-700 text-gray-200 sm:text-sm rounded-lg block w-full p-2"
-                              id={field.id}
-                              placeholder={field.label}
-                              required
-                              type={field.type}
-                              defaultValue={
-                                field.type == "datetime-local"
-                                  ? moment().toNow()
-                                  : ""
-                              }
-                              {...register(field.inputName)}
-                            />
-                          </div>
-                        );
-                      })}
-                      <Button type="submit">Adicionar tarefa</Button>
-                    </form>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
     </div>
   );
 };
