@@ -10,7 +10,9 @@ import {
   addDoc,
   getDocs,
   query,
+  setDoc,
   where,
+  doc,
 } from "firebase/firestore";
 import { fireStoreApp, auth } from "../../../API/firebaseApp";
 import FullCalendar from "@fullcalendar/react";
@@ -21,32 +23,33 @@ interface ISchedulerContext {
   calendarRef: MutableRefObject<FullCalendar>;
   events?: Events[];
   isOpen: boolean;
-  openModal: ()=>void;
-  closeModal: ()=>void;
-  selectedEvent?: Events; 
+  openModal: () => void;
+  closeModal: () => void;
+  selectedEvent?: Events;
   handleAddEvent: (event: Inputs) => void;
   // handleUpdateEvent: (originalEvent: Inputs, newEvent: Inputs) => void;
-  handleUpdateEvent: any
+  handleUpdateEvent: any;
   handleDeleteEvent: (event: Inputs) => void;
   handleShowEventDetails: (event: string) => void;
-  currentModal: string
-  setCurrentModal: (modalName: string)=>void
-  setSelectedEvent: any
+  currentModal: string;
+  setCurrentModal: (modalName: string) => void;
+  setSelectedEvent: any;
 }
 
 export interface Events {
   start: string;
   end: string;
-  id: string;
+  id?: string;
   title: string;
   description: string;
   duration: number;
+  userUid?: string;
 }
 
 export interface Inputs {
   title: string;
   description: string;
-  startDateTime: Date;
+  start: Date;
   duration: number;
 }
 
@@ -69,19 +72,16 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   const [selectedEvent, setSelectedEvent] = useState<Events>();
   const [events, setEvents] = useState<Events[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [currentModal, setModal] = useState("buscar_tarefa")
+  const [currentModal, setModal] = useState("buscar_tarefa");
   const dbInstance = collection(fireStoreApp, "task");
 
   useEffect(() => {
     const fetchData = async () => await getEventsFromDb();
-
     const localStoreEvents = getEventsOnLocal();
-    console.log("Local store", localStoreEvents);
     if (localStoreEvents) {
       setEvents(localStoreEvents);
     } else {
       fetchData().then((data) => {
-        console.log(data)
         saveTasksInLocal(data);
         setEvents(data);
       });
@@ -89,16 +89,16 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   }, []);
 
   const setCurrentModal = (modalName: string) => {
-    openModal()
-    setModal(modalName)
-  }
+    openModal();
+    setModal(modalName);
+  };
 
   const closeModal = () => {
     setIsOpen(false);
-  }
+  };
   const openModal = () => {
     setIsOpen(true);
-  }
+  };
   const getEventById = (id: string) => {
     // Buscando pelo banco de dados
     // const docRef = doc(fireStoreApp, "task", id);
@@ -131,18 +131,19 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     const calendarApi = calendarRef.current.getApi();
     const createdEvent = calendarApi.addEvent({
       title: event.title,
-      start: moment(event.startDateTime).toDate(),
-      end: moment(event.startDateTime).add(event.duration, "minutes").toDate(),
+      start: moment(event.start).toDate(),
+      end: moment(event.start).add(event.duration, "minutes").toDate(),
     });
 
     if (createdEvent) {
       const userUid = auth.currentUser?.uid;
-      await addDoc(dbInstance, {
+      const newEvent = {
         ...createdEvent.toJSON(),
         description: event.description,
         duration: event.duration,
         userUid: userUid,
-      }).then((data) => {
+      }
+      await addDoc(dbInstance, newEvent).then((data) => {
         const newEvent = {
           ...(createdEvent.toJSON() as IpureEvent),
           description: event.description,
@@ -152,15 +153,46 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
         const newEvents = [...events, newEvent];
         setEvents(newEvents);
         saveTasksInLocal(newEvents);
+        closeModal();
       });
+    }
+  };
+
+  const UpdateEventState = () => {
+    if (events.length > 0) {
+      const newEventsState = events.map((event) => {
+        if (event.id == selectedEvent?.id) {
+          return selectedEvent;
+        }
+        return event;
+      });
+      setEvents(newEventsState as Events[]);
+      saveTasksInLocal(newEventsState as Events[]);
     }
   };
   const handleShowEventDetails = (eventId: string) => {
     getEventById(eventId);
-    console.log(selectedEvent)
     setCurrentModal("alterar_tarefa");
   };
-  const handleUpdateEvent = (newEvent: Inputs) => {};
+  const handleUpdateEvent = async (newEvent: Inputs) => {
+    const refDoc = doc(dbInstance, selectedEvent?.id);
+
+    const newEventFormated = {
+      ...selectedEvent,
+      description: newEvent.description,
+      duration: newEvent.duration,
+      end: moment(newEvent.start).add(newEvent.duration, "minutes").toDate().toISOString(),
+      start: moment(newEvent.start).toDate().toISOString(),
+      title: newEvent.title,
+    }
+    setSelectedEvent(newEventFormated);
+
+    await setDoc(refDoc, newEventFormated);
+    UpdateEventState();
+    closeModal();
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.refetchEvents();
+  };
   const handleDeleteEvent = (event: Inputs) => {};
   return (
     <div className="relative">
@@ -178,13 +210,12 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
           handleShowEventDetails,
           setCurrentModal,
           setSelectedEvent,
-          currentModal
+          currentModal,
         }}
       >
         {children}
         <Modals />
       </SchedulerContext.Provider>
-
     </div>
   );
 };

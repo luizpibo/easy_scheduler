@@ -1,14 +1,14 @@
 import { Button } from "flowbite-react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useContext } from "react";
-import { SchedulerContext } from "../context/SchedulerProvider";
+import { Inputs, SchedulerContext } from "../context/SchedulerProvider";
 import moment from "moment";
 
 interface Task {
   label: string;
   id: string;
   type: string;
-  inputName: "title" | "description" | "startDateTime" | "duration";
+  inputName: "title" | "description" | "start" | "duration";
 }
 
 const newTaskForm: Task[] = [
@@ -28,7 +28,7 @@ const newTaskForm: Task[] = [
     label: "Dia da tarefa",
     id: "start",
     type: "datetime-local",
-    inputName: "startDateTime",
+    inputName: "start",
   },
   {
     label: "Tempo de duração da tarefa em minutos",
@@ -38,27 +38,22 @@ const newTaskForm: Task[] = [
   },
 ];
 
-interface Inputs {
-  title: string;
-  description: string;
-  startDateTime: Date;
-  duration: number;
-}
-
 const EventForm = () => {
   const { handleAddEvent, currentModal, handleUpdateEvent, selectedEvent } = useContext(SchedulerContext);
-  const { register, handleSubmit } = useForm<Inputs>(currentModal == "alterar_tarefa"?{defaultValues: {...selectedEvent, startDateTime: moment(selectedEvent?.start).toDate()}}:{});
-  console.log(selectedEvent)
+  const { register, handleSubmit } = useForm<Inputs>(currentModal == "alterar_tarefa"?{defaultValues: {...selectedEvent, start: moment(selectedEvent?.start).toDate()}}:{});
+  
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     switch(currentModal){
       case "adicionar_tarefa":
         handleAddEvent(data);
         break;
       case "alterar_tarefa":
+        console.log("to alterando")
         handleUpdateEvent(data);
         break;
     }
   };
+
   return (
     <form className="grid gap-2" onSubmit={handleSubmit(onSubmit)}>
       {newTaskForm.map((field) => {
