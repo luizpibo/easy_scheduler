@@ -38,18 +38,19 @@ const newTaskForm: Task[] = [
   },
 ];
 
-const EventForm = () => {
-  const { handleAddEvent, currentModal, handleUpdateEvent, selectedEvent } = useContext(SchedulerContext);
+const EventForm = ({currentModal}:{currentModal: string}) => {
+  const { handleAddEvent, handleEventUpdateWithInputs, selectedEvent } = useContext(SchedulerContext);
   const { register, handleSubmit } = useForm<Inputs>(currentModal == "alterar_tarefa"?{defaultValues: {...selectedEvent, start: moment(selectedEvent?.start).toDate()}}:{});
   
   const onSubmit: SubmitHandler<Inputs> = (data) => {
+    console.log("Current modal", currentModal)
     switch(currentModal){
       case "adicionar_tarefa":
         handleAddEvent(data);
         break;
       case "alterar_tarefa":
         console.log("to alterando")
-        handleUpdateEvent(data);
+        handleEventUpdateWithInputs(data);
         break;
     }
   };

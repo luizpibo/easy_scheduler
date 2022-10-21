@@ -3,15 +3,8 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import { SchedulerContext } from "../context/SchedulerProvider";
 
-const newTaskForm = [
-  {
-    label: "Buscar pelo título",
-    id: "taskTitle",
-    type: "text",
-  },
-];
 const FindTask = () => {
-  const { events, handleShowEventDetails, setSelectedEvent } = useContext(SchedulerContext);
+  const { events, selectEventById } = useContext(SchedulerContext);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState("");
   return (
@@ -19,7 +12,7 @@ const FindTask = () => {
       value={selected}
       onChange={(e) => {
         console.log("selected event",e);
-        handleShowEventDetails(e);
+        selectEventById(e);
       }}
     >
       <div className="flex items-center px-4">

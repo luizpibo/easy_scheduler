@@ -1,6 +1,5 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useContext } from "react";
-import { SchedulerContext } from "../../context/SchedulerProvider";
+import { Fragment } from "react";
 import EventForm from "../EventForm";
 import FindTask from "../FindTask";
 
@@ -10,11 +9,13 @@ interface Task {
   type: string;
   inputName: "title" | "description" | "startDateTime" | "duration";
 }
+interface IModals{
+  isOpen: boolean;
+  closeModal: ()=>void;
+  currentModal: string;
+}
 
-
-const Modals: React.FC = () => {
-  const {closeModal, isOpen, currentModal} = useContext(SchedulerContext);
-  
+const Modals: React.FC<IModals> = ({isOpen, closeModal, currentModal}) => {  
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => {closeModal()}}>

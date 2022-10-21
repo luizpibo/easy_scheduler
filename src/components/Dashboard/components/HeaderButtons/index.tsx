@@ -1,10 +1,13 @@
 import { Button } from "flowbite-react";
 import { useContext } from "react";
-import { logout } from "../../../../contexts/AuthContexts";
-import { SchedulerContext } from "../../context/SchedulerProvider";
+import { AuthContext } from "../../../../contexts/AuthContext";
 
-const HeaderButtons = () =>{
-    const { setCurrentModal } = useContext(SchedulerContext);
+
+interface IHeaderButtons {
+  setCurrentModal: (modalName:string)=>void;
+}
+const HeaderButtons:React.FC<IHeaderButtons> = ({setCurrentModal}) =>{
+  const {logout} = useContext(AuthContext);
     return(
         <div className="flex gap-4 w-full justify-center my-4 align-middle">
         <Button
