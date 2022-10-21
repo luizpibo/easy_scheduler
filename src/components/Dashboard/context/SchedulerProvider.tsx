@@ -11,6 +11,7 @@ import moment from "moment";
 import { AuthContext } from "../../../contexts/AuthContext";
 import {
   addNewEventService,
+  deleteEventService,
   getAllUserEventsService,
   upgradeEventService,
 } from "../../../services/userSevices";
@@ -22,7 +23,7 @@ interface ISchedulerContext {
   selectEventById: (eventId: string) => boolean;
   handleEventUpdateWithIEventDTO: (event: IEventDTO) => void;
   handleAddEvent: (event: IEventDTO) => void;
-  handleDeleteEvent: (event?: Events) => void;
+  handleDeleteEvent: (eventId: string) => void;
 }
 
 export interface Events {
@@ -143,8 +144,14 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     }
   };
 
-  const handleDeleteEvent = (event?: Events) => {
-    console.log("evento", event)
+  const handleDeleteEvent = async (eventId: string) => {
+    await deleteEventService(eventId);
+    const newEventsList = events.filter((event)=>{
+      if(event.id != eventId){
+        return event
+      }
+    })
+    setEvents(newEventsList);
   };
 
   return (

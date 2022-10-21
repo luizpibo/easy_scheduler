@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDocs, query, setDoc, where } from "@firebase/firestore";
+import { addDoc, collection, doc, getDocs, query, setDoc, where, deleteDoc } from "@firebase/firestore";
 import { fireStoreApp } from "../API/firebaseApp";
 import { Events } from "../components/Dashboard/context/SchedulerProvider";
 const dbInstance = collection(fireStoreApp, "task");
@@ -26,8 +26,23 @@ export const addNewEventService = async (newEvent: Events):Promise<Events> => {
 };
 
 export const upgradeEventService = async (modifiedEvent: Events) => {
-    const refDoc = doc(dbInstance, modifiedEvent.id);
-    const returnEvent = await setDoc(refDoc, modifiedEvent).then((event)=>{
+    try{
+      const refDoc = doc(dbInstance, modifiedEvent.id);
+      const returnEvent = await setDoc(refDoc, modifiedEvent).then((event)=>{
+          console.log("evento retornado", event)
+      })
+    } catch(e){
+      console.log("Error", e)
+    }
+}
+
+export const deleteEventService = async (eventId: string) => {
+  try {
+    const refDoc = doc(dbInstance, eventId);
+    const returnEvent = await deleteDoc(refDoc).then((event)=>{
         console.log("evento retornado", event)
     })
+  } catch (e){
+    console.log("Error", e)
+  }
 }

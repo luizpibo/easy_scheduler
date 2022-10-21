@@ -79,7 +79,7 @@ const EventForm = ({
 
   return (
     <>
-      <form className="grid gap-2" onSubmit={handleSubmit(onSubmit)}>
+      <form className="grid gap-2 mb-4" onSubmit={handleSubmit(onSubmit)}>
         {newEventForm.map((field) => {
           return (
             <div className="relative" key={field.inputName}>
@@ -106,7 +106,8 @@ const EventForm = ({
         <Button
           type="submit"
           onClick={(e) => {
-            handleDeleteEvent(selectedEvent);
+            handleDeleteEvent(selectedEvent?.id as string);
+            closeModal();
           }}
         >
           Apagar tarefa
