@@ -14,16 +14,15 @@ import {
   getAllUserEventsService,
   upgradeEventService,
 } from "../../../services/userSevices";
-import { getEventsOnLocal, updateLocalStorage } from "../../../Utils";
 
 interface ISchedulerContext {
   calendarRef: MutableRefObject<FullCalendar>;
   events?: Events[];
   selectedEvent?: Events;
   selectEventById: (eventId: string) => boolean;
-  handleEventUpdateWithInputs: (event: Inputs) => void;
-  handleAddEvent: (event: Inputs) => void;
-  handleDeleteEvent: (event: Inputs) => void;
+  handleEventUpdateWithIEventDTO: (event: IEventDTO) => void;
+  handleAddEvent: (event: IEventDTO) => void;
+  handleDeleteEvent: (event?: Events) => void;
 }
 
 export interface Events {
@@ -36,7 +35,7 @@ export interface Events {
   userUid?: string;
 }
 
-export interface Inputs {
+export interface IEventDTO {
   title: string;
   description: string;
   start: Date;
@@ -60,15 +59,9 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   useEffect(() => {
     const fetchData = async () =>
       await getAllUserEventsService(currentUser.userUid);
-    const localStoreEvents = getEventsOnLocal();
-    if (localStoreEvents) {
-      setEvents(localStoreEvents);
-    } else {
-      fetchData().then((data) => {
-        updateLocalStorage(data);
-        setEvents(data);
-      });
-    }
+    fetchData().then((data) => {
+      setEvents(data);
+    });
   }, []);
 
   const updateEvent = (newEvent: Events) => {
@@ -79,7 +72,7 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
       }
       return event;
     });
-    upgradeStateEvents({ newEvents: newEventsList });
+    setEvents(newEventsList);
   };
 
   const upgradeStateEvents = ({
@@ -91,8 +84,6 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   }) => {
     if (newEvents) {
       const newEventsList = [...events, ...newEvents];
-      console.log("NEW EVENTS LIST ON UPGRADE", newEventsList);
-      updateLocalStorage(newEventsList);
       setEvents(newEventsList);
     } else if (newEvent) {
       updateEvent(newEvent);
@@ -112,7 +103,7 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     return false;
   };
 
-  const handleAddEvent = async (event: Inputs) => {
+  const handleAddEvent = async (event: IEventDTO) => {
     //Pegar o id do usuário logado
     const userUid = currentUser.userUid;
     // Criando um novo docmento para ser salvo na firebase, contendo o evendo do calendário, descrição, duração da atividade e id do usuario
@@ -129,10 +120,11 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     } as Events;
     // Acionando a função que adiciona um novo documento, ela recebe a referencia da coleção e o novo evento
     const eventOnFirebase = await addNewEventService(newEvent);
-    upgradeStateEvents({ newEvent: eventOnFirebase });
+    console.log("Novo evento sendo adicionado", eventOnFirebase);
+    setEvents([...events, eventOnFirebase]);
   };
 
-  const handleEventUpdateWithInputs = async (newEvent: Inputs) => {
+  const handleEventUpdateWithIEventDTO = async (newEvent: IEventDTO) => {
     if (selectedEvent?.id) {
       const newEventFormated = {
         userUid: selectedEvent.userUid,
@@ -141,17 +133,19 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
         duration: newEvent.duration,
         end: moment(newEvent.start)
           .add(newEvent.duration, "minutes")
-          .toDate()
-          .toString(),
-        start: moment(newEvent.start).toDate().toString(),
+          .toISOString(),
+        start: moment(newEvent.start).toDate().toISOString(),
         title: newEvent.title,
       };
+      console.log("evento sendo atualizado", newEventFormated)
       await upgradeEventService(newEventFormated);
       updateEvent(newEventFormated);
     }
   };
 
-  const handleDeleteEvent = (event: Inputs) => {};
+  const handleDeleteEvent = (event?: Events) => {
+    console.log("evento", event)
+  };
 
   return (
     <div className="relative">
@@ -161,7 +155,7 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
           events,
           selectedEvent,
           handleAddEvent,
-          handleEventUpdateWithInputs,
+          handleEventUpdateWithIEventDTO,
           handleDeleteEvent,
           selectEventById,
         }}

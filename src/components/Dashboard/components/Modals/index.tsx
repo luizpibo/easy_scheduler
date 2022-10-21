@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import EventForm from "../EventForm";
-import FindTask from "../FindTask";
+import EventForm from "./EventForm";
+import FindTask from "./FindTask";
 
 interface Task {
   label: string;
@@ -49,8 +49,8 @@ const Modals: React.FC<IModals> = ({isOpen, closeModal, currentModal}) => {
                 >
                   {currentModal}
                 </Dialog.Title>
-                {(currentModal=="adicionar_tarefa" || currentModal=="alterar_tarefa" )&& <EventForm/>}
-                {currentModal=="buscar_tarefa" && <FindTask/>}
+                {(currentModal=="adicionar_tarefa" || currentModal=="alterar_tarefa" ) && <EventForm currentModal={currentModal} closeModal={closeModal} />}
+              {currentModal=="buscar_tarefa" && <FindTask closeModal={closeModal} />}
               </Dialog.Panel>
             </Transition.Child>
           </div>

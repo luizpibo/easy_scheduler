@@ -19,7 +19,6 @@ const Dashboard = () => {
     openModal();
   };
 
-  console.log("Renderizou")
   return (
     <SchedulerProvider>
       <div className="container m-auto flex flex-col flex-1 bg-opacity-75 bg-gray-500 w-full p-4 rounded gap-5 shadow-xl relative">

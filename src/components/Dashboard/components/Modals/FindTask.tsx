@@ -1,9 +1,9 @@
 import { Combobox } from "@headlessui/react";
 import moment from "moment";
 import { useContext, useState } from "react";
-import { SchedulerContext } from "../context/SchedulerProvider";
+import { SchedulerContext } from "../../context/SchedulerProvider";
 
-const FindTask = () => {
+const FindTask = ({closeModal}:{closeModal: ()=>void}) => {
   const { events, selectEventById } = useContext(SchedulerContext);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState("");
@@ -13,6 +13,7 @@ const FindTask = () => {
       onChange={(e) => {
         console.log("selected event",e);
         selectEventById(e);
+        closeModal()
       }}
     >
       <div className="flex items-center px-4">

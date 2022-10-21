@@ -12,6 +12,8 @@ interface IScheduler {
 const Scheduler: React.FC<IScheduler> = ({setCurrentModal}) => {
   const { calendarRef, events, selectEventById } =
     useContext(SchedulerContext);
+    console.log("events of Scheduler", events);
+    
   return (
     <div className="flex-col flex-1 rounded bg-gray-800 p-4 shadow-lg text-gray-200">
       <FullCalendar

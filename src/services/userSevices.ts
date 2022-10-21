@@ -18,7 +18,6 @@ export const getAllUserEventsService = async (
 export const addNewEventService = async (newEvent: Events):Promise<Events> => {
   return await addDoc(dbInstance, newEvent).then((data) => {
     //Caso o documento seja salvo
-    console.log("Retorno da adição do documento", data.id);
     return {
       ...newEvent,
       id: data.id,
