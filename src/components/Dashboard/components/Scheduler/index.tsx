@@ -5,9 +5,15 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { useContext } from "react";
 import { SchedulerContext } from "../../context/SchedulerProvider";
 
-const Scheduler: React.FC = () => {
-  const { calendarRef, events, handleShowEventDetails } =
+
+interface IScheduler {
+  setCurrentModal: (modalName: "adicionar_tarefa"| "alterar_tarefa" | "buscar_tarefa" )=>any
+}
+const Scheduler: React.FC<IScheduler> = ({setCurrentModal}) => {
+  const { calendarRef, events, selectEventById } =
     useContext(SchedulerContext);
+    console.log("events of Scheduler", events);
+    
   return (
     <div className="flex-col flex-1 rounded bg-gray-800 p-4 shadow-lg text-gray-200">
       <FullCalendar
@@ -27,7 +33,10 @@ const Scheduler: React.FC = () => {
           list: "Lista",
         }}
         eventClick={(e) => {
-          handleShowEventDetails(e.event.id);
+          console.log("Event id", e.event.id);
+          if(selectEventById(e.event.id)){
+            setCurrentModal('alterar_tarefa')
+          }
         }}
         height={480}
         initialDate={Date.now()}
