@@ -56,11 +56,11 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
   const [selectedEvent, setSelectedEvent] = useState<Events>();
   const [events, setEvents] = useState<Events[]>([]);
   const calendarRef = useRef<FullCalendar>(null!);
-  console.log("events", events);
+
   useEffect(() => {
-    const fetchData = async () =>
-      await getAllUserEventsService(currentUser.userUid);
-    fetchData().then((data) => {
+    const fetchData = async (userUid: string) =>
+      await getAllUserEventsService(userUid);
+    fetchData(currentUser.userUid).then((data) => {
       setEvents(data);
     });
   }, []);
@@ -172,5 +172,10 @@ const SchedulerProvider: React.FC<IProvider> = ({ children }) => {
     </div>
   );
 };
+// export const getServerSideProps: GetServerSideProps = async () =>{
 
+//   props : {
+
+//   }
+// }
 export default SchedulerProvider;

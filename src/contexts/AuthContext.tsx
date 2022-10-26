@@ -13,14 +13,15 @@ export const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
 export interface ICurrentUser {
   userUid: string;
-  email: string | null;
-  displayName: string | null;
+  email: string | undefined;
+  displayName: string | undefined;
 }
 
 interface IAuthContext {
   currentUser: ICurrentUser;
-  logout: ()=>void;
+  logout: () => void;
 }
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -30,8 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (user) {
         setCurrentUser({
           userUid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
+          email: user.email ? user.email: undefined,
+          displayName: user.displayName ? user.displayName: undefined,
         });
       }
     });
@@ -42,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       .then((result) => {
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential?.accessToken;
-  
+
         const user = result.user;
         console.log({ credential, token, user });
       })
@@ -54,21 +55,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log({ errorCode, errorMessage, email, credential });
       });
   };
-  
+
   const logout = () => {
     auth.signOut();
-    setCurrentUser(undefined)
+    setCurrentUser(undefined);
   };
 
   return (
-    <>
+    <div className="min-h-screen w-full bg-slate-800">
       {currentUser ? (
-        <AuthContext.Provider value={{ currentUser: currentUser, logout: logout }}>
+        <AuthContext.Provider
+          value={{ currentUser: currentUser, logout: logout }}
+        >
           {children}
         </AuthContext.Provider>
       ) : (
-        <Button onClick={login}>Login</Button>
+        <div className="container m-auto flex flex-col gap-4 items-center justify-center min-h-screen">
+          <h1 className="text-3xl text-gray-300 font-bold">Faça o login para acessar sua agenda</h1>
+          <Button onClick={login} type="button" style={{maxWidth: "8rem"}} >Login</Button>
+        </div>
       )}
-    </>
+    </div>
   );
 };
